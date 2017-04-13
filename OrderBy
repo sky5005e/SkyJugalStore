@@ -1,0 +1,66 @@
+public void ApplySortBy(ref IQueryable<T> QueryData)
+        {
+            
+            Type t = typeof(T).GetProperty(SortBy).GetType();
+            string sortDirection = SortDirection == System.ComponentModel.ListSortDirection.Ascending ? "Asc" : "Desc";
+            var param = Expression.Parameter(typeof(T), "o");
+            
+            if (typeof(T).GetProperty(SortBy).PropertyType == typeof(int))
+            {
+                var mySortExpression = Expression.Lambda<Func<T, int>>(Expression.Property(param, SortBy), param);
+                switch (sortDirection)
+                {
+                    default:
+                        QueryData = QueryData.OrderBy(mySortExpression);//r => r.GetType().GetProperty(SortBy));
+                        break;
+                    case "Desc":
+                        QueryData = QueryData.OrderByDescending(mySortExpression);
+                        break;
+
+                }
+            }
+            else if (typeof(T).GetProperty(SortBy).PropertyType == typeof(bool))
+            {
+                var mySortExpression = Expression.Lambda<Func<T, bool>>(Expression.Property(param, SortBy), param);
+                switch (sortDirection)
+                {
+                    default:
+                        QueryData = QueryData.OrderBy(mySortExpression);//r => r.GetType().GetProperty(SortBy));
+                        break;
+                    case "Desc":
+                        QueryData = QueryData.OrderByDescending(mySortExpression);
+                        break;
+
+                }
+            }
+            else if (typeof(T).GetProperty(SortBy).PropertyType == typeof(DateTime))
+            {
+                var mySortExpression = Expression.Lambda<Func<T, DateTime>>(Expression.Property(param, SortBy), param);
+                switch (sortDirection)
+                {
+                    default:
+                        QueryData = QueryData.OrderBy(mySortExpression);//r => r.GetType().GetProperty(SortBy));
+                        break;
+                    case "Desc":
+                        QueryData = QueryData.OrderByDescending(mySortExpression);
+                        break;
+
+                }
+            }
+            else
+            {
+               var mySortExpression = Expression.Lambda<Func<T, string>>(Expression.Property(param, SortBy), param);
+                switch (sortDirection)
+                {
+                    default:
+                        QueryData = QueryData.OrderBy(mySortExpression);//r => r.GetType().GetProperty(SortBy));
+                        break;
+                    case "Desc":
+                        QueryData = QueryData.OrderByDescending(mySortExpression);
+                        break;
+
+                }
+           }
+
+            
+        }
