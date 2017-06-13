@@ -1,0 +1,85 @@
+--JS
+function GeneralAlertMsg(_msg, _hideFadeLayer,RedirectURL) {
+    $("#GeneralMsg-master-popup").css('top', '0');
+    $(".fade-layer").show();
+    if(_hideFadeLayer)
+        $("#btncloseMsg").removeAttr("onclick").attr("onclick","HideMsg(false)");
+    $("#dvGeneralMsg").show();
+    $("#pMsg").html(_msg);
+    if(RedirectURL && RedirectURL.trim() != '')
+        $("#RedirectURL_Span").html(RedirectURL);
+    else
+        $("#RedirectURL_Span").html("");
+}
+function GeneralConfirmationMsg(_msg) {
+    $("#GeneralConfirmation-master-popup").css('top', '0');
+    $(".fade-layer").show();
+    $("#dvGeneralConfirmationMsg").show();
+    $("#pdMsg").html(_msg);
+}
+
+-- UI
+<%--Start General Msg   --%>
+    <div id="dvGeneralMsg" style="display: none;">
+        <div class="popup-outer popupouter-center" id="GeneralMsg-master-popup">
+            <div class="popupInner">
+                <div class="popup-block generalmsg-pop">
+                    <div class="popup-midd">
+                        <div class="generalmsg-content">
+                            <p id="pMsg">
+                            </p>
+                        </div>
+                        <div class="btn-block">
+                            <a href="javascript:;" id="btncloseMsg" class="blue-btn" onclick="HideMsg(true);">OK</a>
+                        </div>
+                    </div>
+                </div>
+                <span id="RedirectURL_Span" style="display: none;"></span><span class="popup-bot">&nbsp;</span>
+            </div>
+        </div>
+    </div>
+    <%--END General Msg  --%>
+    <%--Start Confirmation Popup Panel --%>
+    <div id="dvGeneralConfirmationMsg" style="display: none;">
+        <div class="popup-outer popupouter-center" id="GeneralConfirmation-master-popup">
+            <div class="popupInner">
+                <div class="popup-block generalmsg-pop">
+                    <div class="popup-midd">
+                        <div class="generalmsg-content">
+                            <p id="pdMsg">
+                            </p>
+                        </div>
+                        <div class="btn-block">
+                            <a href="javascript:;" id="aCancelSave" class="gray-btn cancel-btn" onclick="CloseGeneralConfirmation(true);">
+                                NO</a> <a href="javascript:;" id="aConfirmSave" class="blue-btn" onclick="CloseGeneralConfirmation(false);">
+                                    YES</a>
+                        </div>
+                    </div>
+                </div>
+                <span class="popup-bot">&nbsp;</span>
+            </div>
+        </div>
+    </div>
+	
+	
+	-- CSS
+	#GeneralMsg-master-popup{}
+#GeneralMsg-master-popup .close-btn{top:9px; right:105px;}
+#GeneralMsg-master-popup .blue-btn{ margin-top:5px;}
+#GeneralMsg-master-popup .popupInner{ margin: -135px 0 0 -227px !important; width: 454px; height:270px; z-index: 9; position: absolute; left:50%;top:50%; }
+#GeneralMsg-master-popup .Message-master-shop-popup .message-title{font-family: 'AvenirLTStd-Medium'; font-size:18px; line-height:22px; display:block; padding:5px; text-align:left;}
+#GeneralMsg-master-popup .popupInner{ background:none; border:none}
+
+#GeneralConfirmation-master-popup { }
+#GeneralConfirmation-master-popup .close-btn{top:9px; right:105px;}
+#GeneralConfirmation-master-popup .blue-btn{ margin-top:5px;}
+#GeneralConfirmation-master-popup .gray-btn{ margin-top:5px;}
+#GeneralConfirmation-master-popup .popupInner{ margin: -135px 0 0 -227px !important; width: 454px; height:270px; z-index: 9; position: absolute; left:50%;top:50%; }
+#GeneralConfirmation-master-popup .Message-master-shop-popup .message-title{font-family: 'AvenirLTStd-Medium'; font-size:18px; line-height:22px; display:block; padding:5px; text-align:left;}
+#GeneralConfirmation-master-popup .popupInner{ background:none; border:none}
+.generalmsg-pop h3{ font-size: 18px; line-height: 24px; padding-bottom: 9px; padding-top: 53px; text-align:center;}
+.generalmsg-content{min-height:auto;}
+.generalmsg-content p{color: #929292; font-family: 'AvenirLTStd-Medium'; font-size: 14px; line-height: 18px;}
+.generalmsg-content .btn-block{text-align:center;}
+
+    
