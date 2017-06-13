@@ -93,3 +93,10 @@ function GeneralConfirmationMsg(_msg) {
 }
 .popup-bot{ background:url(../img/popup-bot-bg.png) no-repeat top right; width:388px; height:40px; display:block;}
 
+
+.generalmsg-pop{}
+.generalmsg-pop h3{ font-size: 18px; line-height: 24px; padding-bottom: 9px; padding-top: 53px; text-align:center;}
+.generalmsg-content p{color: #fff; font-family: 'AvenirLTStd-Medium'; font-size: 13px; line-height: 18px;}
+.generalmsg-content .btn-block{text-align:center;}
+
+
