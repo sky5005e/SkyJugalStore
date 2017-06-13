@@ -100,3 +100,24 @@ function GeneralConfirmationMsg(_msg) {
 .generalmsg-content .btn-block{text-align:center;}
 
 
+function HideMsg(flag) {
+    $("#GeneralMsg-master-popup").css('top', '-9999px');
+    if(flag)
+        $(".fade-layer").hide();
+    $("#dvGeneralMsg").hide();
+    var RedirectURL = $("#RedirectURL_Span").html();
+    if(RedirectURL != "")
+        window.location = RedirectURL;
+}
+
+function CloseGeneralConfirmation(moveToNextTab) {
+    $("#GeneralConfirmation-master-popup").css('top', '-9999px');
+    $(".fade-layer").hide();
+    $("#dvGeneralConfirmationMsg").hide();
+    $("#pdMsg").html('');    
+    if (moveToNextTab) {        
+        var liCtrl = $("li[tab-id='" + $("#hdnClickedTab").val() + "']");
+        $.changeTab(liCtrl, true);
+    }
+    
+}
