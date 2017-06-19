@@ -1,0 +1,655 @@
+using HicomCore.Entities;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace HicomCore
+{
+    public class AuditHandler
+    {
+        private DbContext context;
+
+        public AuditHandler(DbContext context)
+        {
+            this.context = context;
+        }
+        public List<Audit> GetAudits(DbEntityEntry entry, int SecurityUserId)
+        {
+            List<Audit> auditlogs = new List<Audit>();
+            DateTime dt = DateTime.UtcNow;
+            //entry is Added 
+            if (entry.State == EntityState.Added)
+            {
+               
+                
+            }
+            //entry in deleted
+            else if (entry.State == EntityState.Deleted)
+            {
+
+                
+                
+            }
+            //entry is modified
+            else if (entry.State == EntityState.Modified)
+            {
+                
+                auditlogs.AddRange(GetModifiedAudits(entry, dt, SecurityUserId));
+            }
+
+            return auditlogs;
+        }
+
+
+        private void SetAddedProperties(DbEntityEntry entry, StringBuilder newData)
+        {
+            foreach (var propertyName in entry.CurrentValues.PropertyNames)
+            {
+                var newVal = entry.CurrentValues[propertyName];
+                if (newVal != null)
+                {
+                    newData.AppendFormat("{0}={1} || ", propertyName, newVal);
+                }
+            }
+            if (newData.Length > 0)
+                newData = newData.Remove(newData.Length - 3, 3);
+        }
+
+        private void SetDeletedProperties(DbEntityEntry entry, StringBuilder oldData)
+        {
+            DbPropertyValues dbValues = entry.GetDatabaseValues();
+            foreach (var propertyName in dbValues.PropertyNames)
+            {
+                var oldVal = dbValues[propertyName];
+                if (oldVal != null)
+                {
+                    oldData.AppendFormat("{0}={1} || ", propertyName, oldVal);
+                }
+            }
+            if (oldData.Length > 0)
+                oldData = oldData.Remove(oldData.Length - 3, 3);
+        }
+
+        private List<Audit> GetModifiedAudits(DbEntityEntry entry, DateTime dt, int SecurityUserId)
+        {
+            List<Audit> Audits = new List<Audit>();
+            DbPropertyValues dbValues = entry.GetDatabaseValues();
+            foreach (var propertyName in entry.OriginalValues.PropertyNames)
+            {
+                var oldValue = dbValues[propertyName];
+                var newValue = entry.CurrentValues[propertyName];
+                if (oldValue != null && newValue != null && !Equals(oldValue, newValue))
+                {
+                    Audit audit = new Audit();
+                    audit.SecurityUserId = SecurityUserId;
+                    audit.TableName = GetTableName(entry);
+                    audit.PrimaryKey = GetKeyValue(entry);
+                    audit.EventDateTime = dt;
+                    audit.FieldName = propertyName;
+                    audit.EventType = 1;
+                    audit.OldValue = Convert.ToString(oldValue);
+                    audit.NewValue = Convert.ToString(newValue);
+                    Audits.Add(audit);
+                }
+            }
+            return Audits;
+        }
+
+        private void SetModifiedProperties(DbEntityEntry entry, StringBuilder oldData, StringBuilder newData)
+        {
+            DbPropertyValues dbValues = entry.GetDatabaseValues();
+            foreach (var propertyName in entry.OriginalValues.PropertyNames)
+            {
+                var oldVal = dbValues[propertyName];
+                var newVal = entry.CurrentValues[propertyName];
+                if (oldVal != null && newVal != null && !Equals(oldVal, newVal))
+                {
+                    newData.AppendFormat("{0}={1} || ", propertyName, newVal);
+                    oldData.AppendFormat("{0}={1} || ", propertyName, oldVal);
+                }
+            }
+            if (oldData.Length > 0)
+                oldData = oldData.Remove(oldData.Length - 3, 3);
+            if (newData.Length > 0)
+                newData = newData.Remove(newData.Length - 3, 3);
+        }
+
+
+        public int? GetKeyValue(DbEntityEntry entry)
+        {
+            var objectStateEntry = ((IObjectContextAdapter)context).ObjectContext.ObjectStateManager.GetObjectStateEntry(entry.Entity);
+            int id = 0;
+            if (objectStateEntry.EntityKey.EntityKeyValues != null)
+                id = Convert.ToInt32(objectStateEntry.EntityKey.EntityKeyValues[0].Value);
+
+            return id;
+        }
+
+        private string GetTableName(DbEntityEntry dbEntry)
+        {
+            TableAttribute tableAttr = dbEntry.Entity.GetType().GetCustomAttributes(typeof(TableAttribute), false).SingleOrDefault() as TableAttribute;
+            string tableName = tableAttr != null ? tableAttr.Name : ((dbEntry.Entity.GetType()).BaseType).Name;
+                //tableAttr != null ? tableAttr.Name : dbEntry.Entity.GetType().Name;
+            return tableName;
+        }
+    }
+
+   
+
+}
+
+
+using HicomCore.Entities;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace HicomCore
+{
+    /// <summary>
+    /// Generic Repository class for Entity Operations
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
+    public class GenericRepository<TEntity> where TEntity : class
+    {
+        #region Private member variables...
+        internal HicomEntities CoreContext;
+        internal DbSet<TEntity> DbSet;
+        #endregion
+
+        #region Public Constructor...
+        /// <summary>
+        /// Public Constructor,initializes privately declared local variables.
+        /// </summary>
+        /// <param name="context"></param>
+        public GenericRepository(HicomEntities context)
+        {
+            this.CoreContext = context;
+            this.DbSet = context.Set<TEntity>();
+        }
+        #endregion
+
+        #region Public member methods...
+
+        /// <summary>
+        /// generic Get method for Entities
+        /// </summary>
+        /// <returns></returns>
+        public virtual IEnumerable<TEntity> Get()
+        {
+            IQueryable<TEntity> query = DbSet;
+            return query.ToList();
+        }
+
+        /// <summary>
+        /// Generic get method on the basis of id for Entities.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public virtual TEntity GetByID(object id)
+        {
+            return DbSet.Find(id);
+        }
+
+        /// <summary>
+        /// generic Insert method for the entity
+        /// </summary>
+        /// <param name="entity"></param>
+        public virtual void Insert(TEntity entity)
+        {
+            DbSet.Add(entity);
+        }
+
+        /// <summary>
+        /// generic Insert range method for the entities
+        /// </summary>
+        /// <param name="entities"></param>
+        public virtual void InsertRange(IEnumerable<TEntity> entities)
+        {
+            foreach (var entity in entities)
+            {
+                Insert(entity);
+            }
+        }
+
+        /// <summary>
+        /// Generic Delete method for the entities
+        /// </summary>
+        /// <param name="id"></param>
+        public virtual void Delete(object id)
+        {
+            TEntity entityToDelete = DbSet.Find(id);
+            Delete(entityToDelete);
+        }
+
+        /// <summary>
+        /// Generic Delete method for the entities
+        /// </summary>
+        /// <param name="entityToDelete"></param>
+        public virtual void Delete(TEntity entityToDelete)
+        {
+            if (CoreContext.Entry(entityToDelete).State == EntityState.Detached)
+            {
+                DbSet.Attach(entityToDelete);
+            }
+            DbSet.Remove(entityToDelete);
+        }
+
+        /// <summary>
+        /// Generic Delete method for the entities
+        /// </summary>
+        /// <param name="entitiesToDelete"></param>
+        public virtual void DeleteRange(IEnumerable<TEntity> entitiesToDelete)
+        {
+            foreach (var entityToDelete in entitiesToDelete)
+            {
+                Delete(entitiesToDelete);
+            }
+           
+        }
+
+        /// <summary>
+        /// Generic update method for the entities
+        /// </summary>
+        /// <param name="entityToUpdate"></param>
+        public virtual void Update(TEntity entityToUpdate)
+        {
+            DbSet.Attach(entityToUpdate);
+            CoreContext.Entry(entityToUpdate).State = EntityState.Modified;
+        }
+
+        /// <summary>
+        /// Generic update method for the entities
+        /// </summary>
+        /// <param name="entityToUpdate"></param>
+        public virtual void UpdateRange(IEnumerable<TEntity> entitiesToUpdate)
+        {
+            foreach (var entityToUpdate in entitiesToUpdate)
+            {
+                Update(entityToUpdate);
+            }
+        }
+
+        /// <summary>
+        /// generic method to get many record on the basis of a condition.
+        /// </summary>
+        /// <param name="where"></param>
+        /// <returns></returns>
+        public virtual IEnumerable<TEntity> GetMany(Func<TEntity, bool> where)
+        {
+            return DbSet.Where(where).ToList();
+        }
+
+        /// <summary>
+        /// generic method to get many record on the basis of a condition but query able.
+        /// </summary>
+        /// <param name="where"></param>
+        /// <returns></returns>
+        public virtual IQueryable<TEntity> GetManyQueryable(Func<TEntity, bool> where)
+        {
+            return DbSet.Where(where).AsQueryable();
+        }
+
+        /// <summary>
+        /// generic get method , fetches data for the entities on the basis of condition.
+        /// </summary>
+        /// <param name="where"></param>
+        /// <returns></returns>
+        public TEntity Get(Func<TEntity, Boolean> where)
+        {
+            return DbSet.Where(where).FirstOrDefault<TEntity>();
+        }
+
+        /// <summary>
+        /// generic delete method , deletes data for the entities on the basis of condition.
+        /// </summary>
+        /// <param name="where"></param>
+        /// <returns></returns>
+        public void Delete(Func<TEntity, Boolean> where)
+        {
+            IQueryable<TEntity> objects = DbSet.Where<TEntity>(where).AsQueryable();
+            foreach (TEntity obj in objects)
+                DbSet.Remove(obj);
+        }
+
+        /// <summary>
+        /// generic method to fetch all the records from db
+        /// </summary>
+        /// <returns></returns>
+        public virtual IEnumerable<TEntity> GetAll()
+        {
+            return DbSet.ToList();
+        }
+
+        /// <summary>
+        /// Inclue multiple
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="include"></param>
+        /// <returns></returns>
+        public IQueryable<TEntity> GetWithInclude(Expression<Func<TEntity, bool>> predicate, params string[] include)
+        {
+            IQueryable<TEntity> query = this.DbSet;
+            query = include.Aggregate(query, (current, inc) => current.Include(inc));
+            return query.Where(predicate);
+        }
+
+        /// <summary>
+        /// Generic method to check if entity exists
+        /// </summary>
+        /// <param name="primaryKey"></param>
+        /// <returns></returns>
+        public bool Exists(object primaryKey)
+        {
+            return DbSet.Find(primaryKey) != null;
+        }
+
+        /// <summary>
+        /// Gets a single record by the specified criteria (usually the unique identifier)
+        /// </summary>
+        /// <param name="predicate">Criteria to match on</param>
+        /// <returns>A single record that matches the specified criteria</returns>
+        public TEntity GetSingle(Func<TEntity, bool> predicate)
+        {
+            return DbSet.Single<TEntity>(predicate);
+        }
+
+        /// <summary>
+        /// The first record matching the specified criteria
+        /// </summary>
+        /// <param name="predicate">Criteria to match on</param>
+        /// <returns>A single record containing the first record matching the specified criteria</returns>
+        public TEntity GetFirst(Func<TEntity, bool> predicate)
+        {
+            return DbSet.First<TEntity>(predicate);
+        }
+
+        public List<TEntity> ExecuteStoredProcedure(string sp, StoredProcedureParams spParams)
+        {
+            var sqlParams = spParams.AsSqlParameters();
+            var paramNames = (from p in sqlParams
+                              select p.ParameterName).ToArray();
+
+            return (CoreContext as DbContext).Database.SqlQuery<TEntity>("EXEC " + sp + " " + string.Join(",", paramNames), spParams.AsSqlParameters()).ToList();
+        }
+        public int ExecuteStoredProcedureScalarInteger(string sp, StoredProcedureParams spParams)
+        {
+            var sqlParams = spParams.AsSqlParameters();
+            var paramNames = (from p in sqlParams
+                              select p.ParameterName).ToArray();
+
+            return (CoreContext as DbContext).Database.SqlQuery<int>("EXEC " + sp + " " + string.Join(",", paramNames), spParams.AsSqlParameters()).FirstOrDefault();
+        }
+
+
+        //
+        internal IQueryable<TEntity> Select(
+           Expression<Func<TEntity, bool>> filter = null,
+           Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
+           List<Expression<Func<TEntity, object>>> includes = null,
+           int? page = null,
+           int? pageSize = null)
+        {
+            IQueryable<TEntity> query = DbSet;
+
+            if (includes != null)
+            {
+                query = includes.Aggregate(query, (current, include) => current.Include(include));
+            }
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+            if (filter != null)
+            {
+                query = query.AsQueryable().Where(filter);
+            }
+            if (page != null && pageSize != null)
+            {
+                query = query.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value);
+            }
+            return query;
+        }
+
+
+        internal IEnumerable<TEntity> SelectAsync(Expression<Func<TEntity, bool>> query = null,
+           Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
+           List<Expression<Func<TEntity, object>>> includes = null,
+           int? page = null,
+           int? pageSize = null)
+        {
+            return Select(query, orderBy, includes, page, pageSize).AsEnumerable();
+        }
+
+        #endregion
+    }
+}
+
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace HicomCore
+{
+    public class StoredProcedureParams
+    {
+        public SqlParameter[] AsSqlParameters()
+        {
+            List<SqlParameter> sqlParameters = new List<SqlParameter>();
+            var properties = this.GetType().GetProperties();
+            foreach (var p in properties)
+            {
+                object value = p.GetValue(this);
+
+                SqlParameter parameter = new SqlParameter("@" + p.Name, value == null ? DBNull.Value : value);
+                sqlParameters.Add(parameter);
+            }
+
+            return sqlParameters.ToArray();
+        }
+
+    }
+}
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Validation;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using HicomCore.Entities;
+
+namespace HicomCore
+{
+    /// <summary>
+    /// Unit of Work class responsible for DB transactions
+    /// </summary>
+    public class UnitOfWork : IDisposable
+    {
+        #region Private member variables...
+
+        private HicomEntities _context = null;
+        private Dictionary<string, object> repositories;
+        private DbTransaction _transaction;
+
+        private AuditHandler AuditHandler;
+        private List<Audit> AuditList = new List<Audit>();
+        private List<DbEntityEntry> ObjectList = new List<DbEntityEntry>();
+
+        private Dictionary<Type, List<string>> AuditInfo;
+
+        private int SecurityUserId = 1;
+        #endregion
+
+        public UnitOfWork()
+        {
+            _context = new HicomEntities();
+        }
+
+        #region Public Repository Creation properties...
+        
+        public GenericRepository<TEntity> Repository<TEntity>() where TEntity : class
+        {
+            if (repositories == null)
+            {
+                repositories = new Dictionary<string, object>();
+            }
+
+            var type = typeof(TEntity).Name;
+
+            if (!repositories.ContainsKey(type))
+            {
+                var repositoryType = typeof(GenericRepository<>);
+                var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(TEntity)), _context);
+                repositories.Add(type, repositoryInstance);
+            }
+            return (GenericRepository<TEntity>)repositories[type];
+        }
+
+        public void BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.Unspecified)
+        {
+            if (_context.Database.Connection.State != ConnectionState.Open)
+            {
+                _context.Database.Connection.Open();
+            }
+
+            _transaction = _context.Database.Connection.BeginTransaction();
+        }
+
+        public bool Commit()
+        {
+            _transaction.Commit();
+            return true;
+        }
+
+        public void Rollback()
+        {
+            _transaction.Rollback();
+            
+        }
+        #endregion
+
+        #region Public member methods...
+        /// <summary>
+        /// Save method.
+        /// </summary>
+        public int SaveChanges()
+        {
+            try
+            {
+                AuditList.Clear();
+                ObjectList.Clear();
+                AuditHandler = new AuditHandler(_context);
+
+                var entityList = _context.ChangeTracker.Entries().Where(p => p.State == EntityState.Added || p.State == EntityState.Deleted || p.State == EntityState.Modified);
+                foreach (var entity in entityList)
+                {
+                    var audits = AuditHandler.GetAudits(entity, SecurityUserId);
+                    bool isValid = true;
+                    foreach (var audit in audits)
+                    {
+                        if (entity.State == EntityState.Modified && string.IsNullOrWhiteSpace(audit.NewValue) && string.IsNullOrWhiteSpace(audit.OldValue))
+                        {
+                            isValid = false;
+                        }
+                        if (isValid)
+                        {
+                            AuditList.Add(audit);
+                            ObjectList.Add(entity);
+                        }
+                    }
+                }
+
+                var retVal = _context.SaveChanges();
+                if (AuditList.Count > 0)
+                {
+                    for (int i = 0; i < AuditList.Count; i++)
+                    {
+                        if (AuditList[i].EventType == 0)
+                            AuditList[i].PrimaryKey = AuditHandler.GetKeyValue(ObjectList[i]);
+                        //this.Repository<Audit>().Insert(AuditList[i]);
+                    }
+                    this.Repository<Audit>().InsertRange(AuditList);
+                    _context.SaveChanges();
+                }
+
+                return retVal;
+            }
+            catch (DbEntityValidationException e)
+            {
+
+                var outputLines = new List<string>();
+                foreach (var eve in e.EntityValidationErrors)
+                {
+                    outputLines.Add(string.Format("{0}: Entity of type \"{1}\" in state \"{2}\" has the following validation errors:", DateTime.Now, eve.Entry.Entity.GetType().Name, eve.Entry.State));
+                    foreach (var ve in eve.ValidationErrors)
+                    {
+                        outputLines.Add(string.Format("- Property: \"{0}\", Error: \"{1}\"", ve.PropertyName, ve.ErrorMessage));
+                    }
+                }
+                System.IO.File.AppendAllLines(@"C:\errors.txt", outputLines);
+                return 0;
+                throw e;
+              
+            }
+
+        }
+
+        #endregion
+
+        #region Implementing IDiosposable...
+
+        #region private dispose variable declaration...
+        private bool disposed = false;
+        #endregion
+
+        /// <summary>
+        /// Protected Virtual Dispose method
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposed)
+            {
+                if (disposing)
+                {
+                    Debug.WriteLine("UnitOfWork is being disposed");
+                    _context.Dispose();
+                }
+            }
+            this.disposed = true;
+        }
+
+        /// <summary>
+        /// Dispose method
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+    }
+}
