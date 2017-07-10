@@ -1,0 +1,122 @@
+
+/**
+ * Returns a random integer between min (inclusive) and max (inclusive)
+ * Using Math.round() will give you a non-uniform distribution!
+ */
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function SerializeObject(formArray) {
+    var Object = {};
+    $.each(formArray,
+        function (i, v) {
+            Object[v.name] = v.value;
+        });
+    return Object;
+}
+
+function SerializeFormData() {
+    var Data = {};
+    var DataArray = $('form').serializeArray();
+    $.each(DataArray,
+        function (i, v) {
+            Data[v.name] = v.value;
+        });
+
+    return Data;
+}
+
+function AppendToFormObject(FormData, formArray) {
+    $.each(formArray,
+        function (i, v) {
+            FormData.append(v.name, v.value);
+        });
+    return FormData;
+}
+
+function ToggleImg(val) {
+    if (val) {
+        $("#photoimg1").show();
+        $("#photoicon").hide();
+    }
+    else {
+        $("#photoimg1").hide();
+        $("#photoicon").show();
+    }
+}
+// Handle File Select
+function HandleFileSelect(evt, elementId, extwithcomma) {
+    var _img = document.getElementById(elementId);
+    var files = evt.target.files; // FileList object
+    var extension = files[0].name.split('.').pop().toLowerCase();
+    if (extwithcomma.toLowerCase().indexOf(extension) >= 0) {
+        var reader = new FileReader();
+        // Closure to capture the file information.
+        reader.onload = (function (theFile) {
+            return function (e) {
+                _img.src = e.target.result;
+            };
+        })(files[0]);
+        // Read in the image file as a data URL.
+        reader.readAsDataURL(files[0]);
+        ToggleImg(true);
+        return true;
+    }
+    else {
+        alert("Please select a valid file " + extwithcomma);
+        return false;
+    }
+}
+
+function $PostFile(postUrl, formData, fnSuccessCallBack, fnErrorCallBack) {
+    $.ajax({
+        type: "POST",
+        url: postUrl,
+        data: formData,//JSON.stringify(model),
+        processData: false,
+        contentType: false,
+        dataType: "json",
+        success: function (msg) {
+            if (fnSuccessCallBack != undefined) {
+                fnSuccessCallBack(msg);
+            }
+        },
+        error: function (xhr, errStatus, error) {
+            //alert(xhr.responseText);
+            if (fnErrorCallBack == undefined) {
+                alert(error + " " + errStatus)
+            } else {
+                fnErrorCallBack(error, errStatus);
+            }
+        }
+    });
+}
+
+function $PostJson(pUrl, data, fnSuccessCallBack, fnErrorCallBack) {
+    $.ajax({
+        type: "POST",
+        url: pUrl,
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        success: function (msg) {
+            if (fnSuccessCallBack != undefined) {
+                fnSuccessCallBack(msg);
+            }
+        },
+        error: function (xhr, errStatus, error) {
+            //alert(xhr.responseText);
+            if (fnErrorCallBack == undefined) {
+                alert(error + " " + errStatus)
+            } else {
+                fnErrorCallBack(error, errStatus);
+            }
+        }
+    });
+}
+
+function HandleGridAction(arg) {
+    var selected = $.map(this.select(), function (item) {
+        window.location.href = $(item).find('.EditRecord')[0].href;
+    });
+}
