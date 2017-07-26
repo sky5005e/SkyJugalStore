@@ -1,0 +1,62 @@
+
+
+
+-- =============================================  
+-- Author:  Surendar Yadav  
+-- Create date: 26th July 2017  
+-- Description: Insert Users from HEE to Accent.Portal  
+-- EXEC CreateSyncUsers  @xml = '<?xml version="1.0"?><SecurityUser><Staff><StaffID>9b25cb80-3cbd-4e7d-ab9a-00b9fcf34f6f</StaffID><salt>QEgozyPBsixgn+4DA3XSAw==</salt><password>7vXUajpleeRf90RQVJUY59WQWso=</password><FirstName>goel</FirstName><LastName></LastName><Username>0036@Oriel.nhs.uk</Username></Staff><Staff><StaffID>aa9afef1-ae23-464a-84dc-f57933295b4d</StaffID><salt>QEgozyPBsixgn+4DA3XSAw==</salt><password>7vXUajpleeRf90RQVJUY59WQWso=</password><FirstName>#Forename0028</FirstName><LastName>#Surname0028</LastName><Username>srtest1@hi.com</Username></Staff><Staff><StaffID>36cade50-62cf-4fea-af20-85fdf2af8f0d</StaffID><salt>QEgozyPBsixgn+4DA3XSAw==</salt><password>7vXUajpleeRf90RQVJUY59WQWso=</password><FirstName>#Forename0029</FirstName><LastName>#Surname0029</LastName><Username>0029@Oriel.nhs.uk2</Username></Staff></SecurityUser>'
+-- =============================================  
+CREATE PROCEDURE [dbo].[CreateSyncUsers]
+(
+  @xml XML
+)
+AS
+BEGIN
+	BEGIN TRANSACTION      
+		  --  Your Insert / Update Statement Here 
+		  SET NOCOUNT ON; 
+
+		  -- INSERT INTO DashboardMenu	
+		  INSERT INTO [Hicom].[SecurityUser]([Username],[Email],[FirstName],[LastName],[IsActive],[IsAnonymous],[IsApproved],[Status],[PasswordFormat],[Password],[PasswordSalt],[CreateOn],[ApplicationId])
+
+		  SELECT
+		  SyncUsers.value('(Username/text())[1]','VARCHAR(200)') AS Username, --TAG
+		  SyncUsers.value('(Username/text())[1]','VARCHAR(200)') AS Email, --TAG
+		  -- SyncUsers.value('(StaffID/text())[1]','NVARCHAR(128)') AS StaffID, --TAG
+		  SyncUsers.value('(FirstName/text())[1]','VARCHAR(200)') AS FirstName, --TAG
+		  SyncUsers.value('(LastName/text())[1]','VARCHAR(200)') AS LastName, --TAG
+		  0, -- IsActive
+		  1, -- IsAnoonmous
+		  1, -- IsAprooved
+		  1, -- status
+		  1, -- PasswordFormat
+		  SyncUsers.value('(password/text())[1]','VARCHAR(100)') AS password, --TAG
+		  SyncUsers.value('(salt/text())[1]','VARCHAR(100)') AS salt, --TAG	  
+		  GETDATE() AS Date,
+		  1
+		  FROM
+		  @xml.nodes('/SecurityUser/Staff')AS TEMPTABLE(SyncUsers) 
+	 
+		  WHERE  SyncUsers.value('(Username/text())[1]','VARCHAR(200)') NOT IN (SELECT Email FROM [Hicom].[SecurityUser])
+
+		  -- INSERT INTO UserInformation
+		  INSERT INTO [dbo].[UserInformation]([SecurityUserId],[HEESecurityUserID])
+		  SELECT
+		  --SyncUsers.value('(Username/text())[1]','VARCHAR(200)') AS Email, --TAG
+		  SU.SecurityUserId,	
+		  SyncUsers.value('(StaffID/text())[1]','NVARCHAR(128)') AS StaffID --TAG
+	  
+		  FROM
+		  @xml.nodes('/SecurityUser/Staff')AS TEMPTABLE(SyncUsers) 
+		  JOIN  [Hicom].[SecurityUser] SU ON SyncUsers.value('(Username/text())[1]','VARCHAR(200)') = SU.Email
+
+	IF (@@ERROR <> 0)   -- CHEck if any error
+		BEGIN          
+			ROLLBACK TRANSACTION       
+		END 
+	ELSE 
+		COMMIT TRANSACTION
+
+     
+END
