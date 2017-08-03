@@ -26,16 +26,21 @@ https://localhost:44331/api/UserGroup/Filters?Filter=Name~eq~'Administrator'~and
         }
 		
 		
-		
-using System;
+	using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Web;
+
 
 namespace Hicom.Core.API.Common
 {
+    /// <summary>
+    /// Filter Expression Util 
+    /// Created By : sky 
+    /// Dated : August - 03rd - 2017
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class FilterUtil<T> where T : class
     {
         private static MethodInfo containsMethod = typeof(string).GetMethod("Contains");
@@ -48,17 +53,23 @@ namespace Hicom.Core.API.Common
             else
             {
                 ParameterExpression param = Expression.Parameter(typeof(T), "t");
-                Expression exp = null;
+                Expression _Expression = null;
                 List<FieldInformation> list = GetProportyInfo(filter);
                 foreach (var fieldInfo in list)
                 {
-                    if (exp == null)
-                        exp = GetExpression(param, fieldInfo);
-                    else
-                        exp = Expression.AndAlso(exp, GetExpression(param, fieldInfo));
+                    var exp = GetExpression(param, fieldInfo);
+                    if (exp != null)
+                    {
+                        if (_Expression == null)
+                            _Expression = exp;
+                        else
+                        {
+                            _Expression = Expression.AndAlso(_Expression, exp);
+                        }
+                    }
 
                 }
-                return Expression.Lambda<Func<T, bool>>(exp, param);
+                return Expression.Lambda<Func<T, bool>>(_Expression, param);
             }
         }
 
@@ -116,47 +127,47 @@ namespace Hicom.Core.API.Common
         {
             try
             {
-
-
                 MemberExpression member = Expression.Property(param, FieldInfo.Name);
-
                 dynamic value = SetProperty(FieldInfo);
-                ConstantExpression constant = Expression.Constant(value);
-                switch (FieldInfo.Operator.ToString())
+                if (value != null)
                 {
-                    case "eq":
-                        return Expression.Equal(member, constant);
+                    ConstantExpression constant = Expression.Constant(value);
+                    switch (FieldInfo.Operator.ToString())
+                    {
+                        case "eq":
+                            return Expression.Equal(member, constant);
 
-                    case "neq":
-                        return Expression.NotEqual(member, constant);
+                        case "neq":
+                            return Expression.NotEqual(member, constant);
 
-                    case "gt":
-                        return Expression.GreaterThan(member, constant);
+                        case "gt":
+                            return Expression.GreaterThan(member, constant);
 
-                    case "lt":
-                        return Expression.LessThan(member, constant);
+                        case "lt":
+                            return Expression.LessThan(member, constant);
 
-                    case "gteq":
-                        return Expression.GreaterThanOrEqual(member, constant);
+                        case "gteq":
+                            return Expression.GreaterThanOrEqual(member, constant);
 
-                    case "lteq":
-                        return Expression.LessThanOrEqual(member, constant);
+                        case "lteq":
+                            return Expression.LessThanOrEqual(member, constant);
 
-                    case "StartsWith":
-                        return Expression.Call(member, startsWithMethod, constant);
+                        case "StartsWith":
+                            return Expression.Call(member, startsWithMethod, constant);
 
-                    case "EndsWith":
-                        return Expression.Call(member, endsWithMethod, constant);
+                        case "EndsWith":
+                            return Expression.Call(member, endsWithMethod, constant);
 
-                    case "IsNull":
-                        return Expression.Equal(member, null);
+                        case "IsNull":
+                            return Expression.Equal(member, null);
 
-                    case "NotIsNull":
-                        return Expression.NotEqual(member, null);
+                        case "NotIsNull":
+                            return Expression.NotEqual(member, null);
 
-                    case "ct":
-                        return Expression.Call(member, containsMethod, constant);
+                        case "ct":
+                            return Expression.Call(member, containsMethod, constant);
 
+                    }
                 }
             }
             catch (Exception ex)
@@ -194,8 +205,6 @@ namespace Hicom.Core.API.Common
                        
                     default:
                         return Convert.ToSingle(FieldInfo.Value);
-                      
-
                 }
                 
             }
@@ -208,7 +217,7 @@ namespace Hicom.Core.API.Common
     }
 
     /// <summary>
-    /// 
+    /// Field Information
     /// </summary>
     public class FieldInformation
     {
