@@ -1,0 +1,59 @@
+ function resetNumber() {
+        $('.row .s1 input').each(function () {
+            console.log($(this));
+            $(this).val($('.row').index($(this).closest('.row')) + 1)
+        })
+    }
+	
+	
+	
+	<form method="post" name="myform" id="myform">
+	<p>
+		<label for='items'>Number of Items: (min: 1)</label><br>
+		<input type="text" name="items" >
+	</p>
+	<p>
+		<label for='amount'>Amount: (min 10 max 100)</label><br>
+		<input type="text" name="amount" >
+	</p>
+  <p>
+		<label for='factor'>Factor: (Between 0.08 and 0.09)</label><br>
+		<input type="text" name="factor" >
+	</p>
+ <p>
+		<label for='dullness'>Dullness: (Between -9.5 and +11.1)</label><br>
+		<input type="text" name="dullness" >
+	</p>   
+	   
+	<input type="submit" name='submit' value="Submit">
+</form>
+
+
+$(function()
+{
+    $("#myform").validate(
+      {
+        rules: 
+        {
+          items: 
+          {
+            required: true,
+            min:1
+          },
+          amount: 
+          {
+            range:[10,100]
+          },
+          factor:
+          {
+            required: true,
+            range:[0.08,0.09]  
+          },
+          dullness:
+          {
+            required: true,
+            range:[-9.5,11.1]
+          }
+        }
+      });	
+});
