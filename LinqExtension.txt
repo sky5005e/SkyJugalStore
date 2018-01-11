@@ -1,0 +1,28 @@
+
+// LINQ with LIST contains and subset contaions or substring contains
+IQueryable =
+                (
+                    from S in DB.Staff
+                    where (
+                            (Filter.PageArea == "Notification" && S.AccentUserId.HasValue
+                                && (string.IsNullOrEmpty(Filter.Operator)
+                                     || ((Filter.Operator == "Contains" && (Filter.SearchBy.Any(q=>S.Forenames.ToLower().Contains(q) || S.Surname.ToLower().Contains(q))))
+                                            || (Filter.Operator == "StartsWith" && (Filter.SearchBy.Any(q => S.Forenames.StartsWith(q.ToLower()) || S.Surname.StartsWith(q.ToLower()))))))
+                                && (Filter.UserIDList == null || Filter.UserIDList.Contains(Convert.ToInt32(S.AccentUserId.Value)))
+                             )
+                            ||
+                            (Filter.PageArea != "Notification" && S.ReportingUniqueId.HasValue
+                               && (Filter.UserIDList == null || Filter.UserIDList.Contains(Convert.ToInt32(S.ReportingUniqueId.Value))))
+                          )
+                        && lstStaffID.Contains(S.StaffId) && !string.IsNullOrEmpty(S.Status)
+                    select new PeopleDTO
+                    {
+                        PersonID = Convert.ToInt32(S.ReportingUniqueId.GetValueOrDefault()),
+                        SecurityUserId = S.AccentUserId,
+                        Forenames = S.Forenames,
+                        Surname = S.Surname,
+                        EmailAddress = S.EmailNumber,
+                        Status = S.Status == "Current" ? "Active" : S.Status == "Delete" ? "Deleted" : S.Status,
+                        MobileNumber = S.MobileNumber
+                    }
+                );
