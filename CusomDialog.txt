@@ -1,0 +1,387 @@
+
+ DeleteFamilyHistory(DeleteId, RowIndex) {
+        this.toastr.setRootViewContainerRef(this.vcr);
+        //if (confirm("Are you sure you want to delete this record ?")) {
+        SkyExt.Confirm("Are you sure you want to delete this record ?", 2).then((ok) => {
+            if (ok) {
+                this.Http.delete('/Patient/FamilyHistory/' + DeleteId).subscribe((res) => {
+                    this.toastr.success('Family History deleted successfully.');
+                    this.DataDetails.splice(RowIndex, 1);
+                    this.Total = this.Total - 1;
+                    this.GetFamilyHistory(1);
+                    //console.log(this.Total);
+                }, err => {
+                    err = JSON.parse(err);
+                    this.toastr.error('', err.Message);
+                });
+            }
+        });
+    }
+	
+	
+	
+	
+var SkyExt = (function () {
+
+    return {
+        Alert: function (message) {
+             swal({ title: 'Open Eyes', text: message, confirmButtonText: 'OK', showCloseButton: true })
+            .then(function (ok) {
+                return ok;
+            }, function (dismiss) {
+                if (dismiss === 'cancel' || dismiss === 'close') { // you might also handle 'close' or 'timer' if you used those
+                    // ignore
+                    return false;
+                } else {
+                    throw dismiss;
+                }
+            });
+        },
+        Confirm: function (confirmMessage, type) {
+             // for Yes and No button
+            if (type === undefined && type == 2) {
+                return swal({
+                    title: "Open Eyes",
+                    text: confirmMessage,
+                    showCancelButton: true,
+                    confirmButtonText: "Yes",
+                    cancelButtonText: "No",
+                    cancelButtonClass: "btn-danger",
+                    closeOnConfirm: true
+                }).then(function (ok) {
+                    return true;
+                }, function (dismiss) {
+                    // dismiss can be "cancel" | "close" | "outside"
+                    return false;
+                });
+            }
+            else if (type === undefined && type == 1) {
+                return swal({
+                    title: "Open Eyes",
+                    text: confirmMessage,
+                    showCancelButton: true,
+                    confirmButtonText: "Ok",
+                    cancelButtonText: "Cancel",
+                    cancelButtonClass: "btn-danger",
+                    closeOnConfirm: true
+                }).then(function (ok) {
+                    return true;
+                }, function (dismiss) {
+                    // dismiss can be "cancel" | "close" | "outside"
+                    return false;
+                });
+            }
+            else {
+                return swal({
+                    title: "Open Eyes",
+                    text: confirmMessage,
+                    showCancelButton: true,
+                    confirmButtonText: "Ok",
+                    cancelButtonText: "Cancel",
+                    cancelButtonClass: "btn-danger",
+                    closeOnConfirm: true
+                }).then(function (ok) {
+                    return true;
+                }, function (dismiss) {
+                    // dismiss can be "cancel" | "close" | "outside"
+                    return false;
+                });
+            }
+        }
+
+    }
+
+})(SkyExt || {})
+
+
+
+
+$(document).ready(function () {
+
+
+    //window.alert = function (message, successCallback) {
+    //    //swal({ title: 'Open Eyes', text: message, confirmButtonText: 'OK', showCloseButton: true });
+    //    HicomMessageBox('Something went wrong!', 'error');
+
+    //};
+
+    window.confirm = function (confirmMessage, type, title, doYes) {
+        //debugger;
+        //swal({
+        //    title: title,
+        //    text: confirmMessage,
+        //    showCancelButton: true,
+        //    confirmButtonText: "Yes",
+        //    cancelButtonClass: "btn-danger"
+        //})
+        //   .then((Ok) => {
+        //       //return Ok;
+        //       if (doYes && (typeof doYes === "function")) {
+        //                                  doYes();
+        //                               }
+        //   }).catch((e) => {
+        //       return e;
+        //   });
+
+        debugger;
+        if (type && type == 2) {
+            // for Yes and No button
+            swal({
+                title: "Open Eyes",
+                text: confirmMessage,
+                showCancelButton: true,
+                confirmButtonText: "Yes",
+                cancelButtonClass: "btn-danger",
+                closeOnConfirm: true
+            }).then(function (result) {
+                // handle confirm, result is needed for modals with input
+                if (doYes && (typeof doYes === "function")) {
+                    doYes();
+                }
+                //  return true;
+            }, function (dismiss) {
+                // dismiss can be "cancel" | "close" | "outside"
+                return false;
+            });
+        }
+        else if (type && type == 1) {
+            // for Ok and No button
+            swal({
+                title: "Open Eyes",
+                text: confirmMessage,
+                showCancelButton: true,
+                confirmButtonText: "Ok",
+                cancelButtonClass: "btn-danger",
+                closeOnConfirm: true
+            }).then(function (result) {
+                // handle confirm, result is needed for modals with input
+                return true;
+            }, function (dismiss) {
+                // dismiss can be "cancel" | "close" | "outside"
+                return false;
+            });
+        }
+        else {
+            return swal({
+                title: "Open Eyes",
+                text: confirmMessage,
+                showCancelButton: true,
+                confirmButtonText: "Yes",
+                cancelButtonClass: "btn-danger",
+                closeOnConfirm: true
+            }).then((Ok) => {
+                //return Ok;
+                if (doYes && (typeof doYes === "function")) {
+                    doYes();
+                }
+            }).catch((e) => {
+                return e;
+            }, function (dismiss) {
+                // dismiss can be "cancel" | "close" | "outside"
+                return false;
+            });
+
+        }
+
+
+
+        /* HicomMessageBox('Do you want to proceed?', 'warning', { okButtonName: 'Yes', cancelButtonName: 'No' }, doYes); */
+
+        //$(document.createElement('div'))
+        //        .attr({ title: title, class: 'confirm' })
+        //        .html(message)
+        //        .dialog({
+        //            buttons: {
+        //                "Confirm": function () {
+        //                    $(this).dialog("close");
+        //                    if (doYes && (typeof doYes === "function")) {
+        //                        doYes();
+        //                    }
+        //                },
+        //                "Cancel": function () {
+        //                    $(this).dialog("close");
+        //                }
+        //            }
+        //    ,
+        //            close: function () {
+        //                $(this).remove();
+        //            },
+        //            draggable: true,
+        //            modal: true,
+        //            resizable: false,
+        //            width: 'auto'
+        //        });
+    };
+    function callsuccuess() {
+        alert('success');
+    }
+    function callcancel() {
+        alert('cancel');
+    }
+
+    function testAlert() {
+        HicomMessageBox('Something went wrong!', 'error');
+    }
+
+    function testAlertWithCallback() {
+        HicomMessageBox('Something went wrong!', 'error', null, function () {
+            HicomMessageBox('OK clicked.');
+        });
+    }
+
+    function testConfirm() {
+        HicomMessageBox('Do you want to proceed?', 'warning', { okButtonName: 'Yes', cancelButtonName: 'No' }, function () {
+            HicomMessageBox('Are you sure you want to proceed?', 'warning', { okButtonName: 'Yes', cancelButtonName: 'No' });
+        });
+    }
+
+    function testPrompt() {
+        HicomMessageBox('How do you feel now?', 'normal', { showTextBox: true }, function (userInput) {
+            HicomMessageBox('User entered "' + userInput + '".');
+        });
+    }
+
+    function testPromptWithDefault() {
+        HicomMessageBox('How do you feel now?', 'normal', { showTextBox: true, textBoxDefaultText: 'I am good!' }, function (userInput) {
+            HicomMessageBox('User entered "' + userInput + '".');
+        });
+    }
+
+    //debugger;
+    // if (window.location.href.indexOf('user'))
+    // {
+    //confirm('hello', 2,'TestTitle', callsuccuess);
+    // }
+
+    //testConfirm();
+    //testPrompt();
+    // testPromptWithDefault();
+})
+
+
+
+const dialogTemplate = '\
+    <div class ="modal" id="hicomcustom_messageBox" role="dialog">\
+        <div class ="modal-dialog">\
+            <div class ="modal-content">\
+                <div class ="modal-body">\
+                    <p class ="text-success" id="hicomcustom_messageBoxMessage">Some text in the modal.</p>\
+                    <p><textarea id="hicomcustom_messageBoxTextArea" cols="70" rows="5"></textarea></p>\
+                </div>\
+                <div class ="modal-footer">\
+                    <button type="button" class ="btn btn-primary" id="hicomcustom_messageBoxOkButton">OK</button>\
+                    <button type="button" class ="btn btn-default" data-dismiss="modal" id="hicomcustom_messageBoxCancelButton">Cancel</button>\
+                </div>\
+            </div>\
+        </div>\
+    </div>';
+
+
+// See the comment inside function hicomcustom_onOkClick(event) {
+var hicomcustom_numOfDialogsOpened = 0;
+
+
+function HicomMessageBox(msg, significance, options, actionConfirmedCallback) {
+    if ($('#hicomcustom_MessageBoxContainer').length == 0) {
+        var iDiv = document.createElement('div');
+        iDiv.id = 'hicomcustom_MessageBoxContainer';
+        document.getElementsByTagName('body')[0].appendChild(iDiv);
+        $("#hicomcustom_MessageBoxContainer").html(dialogTemplate);
+    }
+
+    var okButtonName, cancelButtonName, showTextBox, textBoxDefaultText;
+
+    if (options == null) {
+        okButtonName = 'OK';
+        cancelButtonName = null;
+        showTextBox = null;
+        textBoxDefaultText = null;
+    } else {
+        okButtonName = options.okButtonName;
+        cancelButtonName = options.cancelButtonName;
+        showTextBox = options.showTextBox;
+        textBoxDefaultText = options.textBoxDefaultText;
+    }
+
+    if (showTextBox == true) {
+        if (textBoxDefaultText == null)
+            $('#hicomcustom_messageBoxTextArea').val('');
+        else
+            $('#hicomcustom_messageBoxTextArea').val(textBoxDefaultText);
+
+        $('#hicomcustom_messageBoxTextArea').show();
+    }
+    else
+        $('#hicomcustom_messageBoxTextArea').hide();
+
+    if (okButtonName != null)
+        $('#hicomcustom_messageBoxOkButton').html(okButtonName);
+    else
+        $('#hicomcustom_messageBoxOkButton').html('OK');
+
+    if (cancelButtonName == null)
+        $('#hicomcustom_messageBoxCancelButton').hide();
+    else {
+        $('#hicomcustom_messageBoxCancelButton').show();
+        $('#hicomcustom_messageBoxCancelButton').html(cancelButtonName);
+    }
+
+    $('#hicomcustom_messageBoxOkButton').unbind('click');
+    $('#hicomcustom_messageBoxOkButton').on('click', { callback: actionConfirmedCallback }, hicomcustom_onOkClick);
+
+    $('#hicomcustom_messageBoxCancelButton').unbind('click');
+    $('#hicomcustom_messageBoxCancelButton').on('click', hicomcustom_onCancelClick);
+
+    var content = $("#hicomcustom_messageBoxMessage");
+
+    if (significance == 'error')
+        content.attr('class', 'text-danger');
+    else if (significance == 'warning')
+        content.attr('class', 'text-warning');
+    else
+        content.attr('class', 'text-success');
+
+    content.html(msg);
+
+    if (hicomcustom_numOfDialogsOpened == 0)
+        $("#hicomcustom_messageBox").modal();
+
+    hicomcustom_numOfDialogsOpened++;
+}
+
+function hicomcustom_onOkClick(event) {
+    // JavaScript's nature is unblocking. So the function call in the following line will not block,
+    // thus the last line of this function, which is to hide the dialog, is executed before user
+    // clicks the "OK" button on the second dialog shown in the callback. Therefore we need to count
+    // how many dialogs is currently showing. If we know there is still a dialog being shown, we do
+    // not execute the last line in this function.
+    if (typeof (event.data.callback) != 'undefined')
+        event.data.callback($('#hicomcustom_messageBoxTextArea').val());
+
+    hicomcustom_numOfDialogsOpened--;
+
+    if (hicomcustom_numOfDialogsOpened == 0)
+        $('#hicomcustom_messageBox').modal('hide');
+}
+
+function hicomcustom_onCancelClick() {
+    hicomcustom_numOfDialogsOpened--;
+
+    if (hicomcustom_numOfDialogsOpened == 0)
+        $('#hicomcustom_messageBox').modal('hide');
+}
+
+
+var skyExtObject = (function () {
+
+    return {
+        
+        func1: function () {
+            alert('function 1 called');
+        },
+        func2: function () {
+            alert('function 2 called');
+        }
+    }
+
+})(skyExtObject || {})
