@@ -1,0 +1,92 @@
+
+<div id="reportconent">
+
+</div>
+
+<button onclick="DialogReport()"> Test Dialog Report</button>
+
+<div id="reportDialogconent" style="width: 650px;">
+
+</div>
+
+<script>
+
+  //  var ReportContent = ` <iframe  scrolling="no" src="http://hissql02/ReportServer_CIS/?/MEH/OpenEyes/Dev/PatientPrescription&amp;rs:Embed=true&amp;rc:Parameters=false&amp;SiteId=16&amp;PathwayEncounterId=2&amp;rs:ParameterLanguage=en-uk&amp;rc:Toolbar=true" style="width: 100%; height: 95%;">
+  //</iframe> `
+
+$.fn.extend({
+    HicomReport: function (params, reportServer, reportPath, reportName) {
+
+        var _reportUrl = reportServer + '?/' + reportPath + reportName + '&';
+        var divreport = document.createElement('div');
+        $(divreport).attr('id', 14568);
+        $(divreport).css({ 'height': 700 });
+
+        _reportUrl = _reportUrl + jQuery.param(params);
+
+        var _iframe = document.createElement('iframe');
+        $(_iframe).attr('src', _reportUrl);
+        $(_iframe).attr('height', '100%');
+        $(_iframe).attr('width', '100%');
+        $(divreport).append(_iframe);
+        $(this).append(divreport);
+      // alert( $(this).attr('id'));
+
+    //return this.each(function() {
+    //  this.checked = true;
+    //});
+    },
+    HicomDialogReport: function (params, reportServer, reportPath, reportName) {
+        
+        $(this).html('');
+        var _reportUrl = reportServer + '?/' + reportPath + reportName + '&';
+        var divreport = document.createElement('div');
+        $(divreport).attr('id', 14568);
+        $(divreport).css({ 'height': 700 });
+
+        _reportUrl = _reportUrl + jQuery.param(params);
+
+        var _iframe = document.createElement('iframe');
+        $(_iframe).attr('src', _reportUrl);
+        $(_iframe).attr('height', '100%');
+        $(_iframe).attr('width', '100%');
+        $(divreport).append(_iframe);
+        $(this).append(divreport);
+
+        $(this).dialog({
+            buttons: { OK: function () { 
+               
+                $(this).dialog('close'); } 
+	
+            },
+           // close: function () { $(this).remove(); },
+            draggable: true,
+            modal: true,
+            resizable: false,
+            width: 'auto'
+        });
+        // alert( $(this).attr('id'));
+
+        //return this.each(function() {
+        //  this.checked = true;
+        //});
+    }
+
+});
+
+var options = {};
+options["rs:Paramters"] = true;
+options["rs:Paramters"] = true;
+options["rs:Paramters"] = true;
+options.SiteId = 16;
+options.PathwayEncounterId = 2
+//options.reportUrl = 
+// Use the newly created .check() method
+$("#reportconent").HicomReport(options, 'http://hissql02/ReportServer_CIS/', 'MEH/OpenEyes/Dev/', 'PatientPrescription');
+
+function DialogReport()
+{
+    $("#reportDialogconent").HicomDialogReport(options, 'http://hissql02/ReportServer_CIS/', 'MEH/OpenEyes/Dev/', 'PatientPrescription');
+}
+
+</script>
