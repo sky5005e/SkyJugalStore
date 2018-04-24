@@ -90,3 +90,265 @@ function DialogReport()
 }
 
 </script>
+
+
+
+
+  
+ // var htmlMessageContent = ` 
+    // <div class="swal2-modal" style="display: none; width: 500px; padding: 20px; background: rgb(255, 255, 255); min-height: 167px;" tabindex="-1">
+        // <h2>Open Eyes</h2><div class="swal2-content" style="display: block;">messageconent</div>
+        // <hr class="swal2-spacer" style="display: block;">
+        // <button type="button" class="swal2-confirm swal2-styled" style="background-color: rgb(48, 133, 214); border-left-color: rgb(48, 133, 214); border-right-color: rgb(48, 133, 214);" onclick='CloseAlert(this);'>OK</button>
+        // <span class="swal2-close" style="display: block;" onclick='CloseAlert(this);'>×</span>
+    // </div> `
+ 
+
+// window.alert = function (message, fallback) {
+
+    // var divdialog = document.createElement('div');
+    // var id = 'HicomAlert_' + + Math.floor((1 + Math.random()) * 0x10000).toString(16);; 
+    // $(divdialog).attr('id', id);
+    // $(divdialog).attr('class', 'swal2-container swal2-fade HicomAlertPopup');
+    // var temp = htmlMessageContent.replace("messageconent", message);
+    // $(divdialog).html(temp);
+    // $(divdialog).css({ 'overflow-y': 'auto' });
+	// $('body').append(divdialog);
+    // ShowNextAlert();
+// };
+
+// function CloseAlert(btn) {
+        // var _parent = $(btn).parents('div.HicomAlertPopup');
+		// var id = $(_parent).attr('id');
+		// //console.log(id);
+		// $("#"+id).remove();
+        // ShowNextAlert();
+    // };
+	
+// function ShowNextAlert() {
+	// $('.swal2-modal').addClass('swal2-fade');	
+    // var modalFisrt = $('.HicomAlertPopup')[0];
+    // //debugger;
+	// var id = $(modalFisrt).attr("id");
+	// $(modalFisrt).focus();
+	// //console.log(id);
+	// $("#" + id).addClass('swal2-in');
+	// $("#" + id + ' div.swal2-modal').removeClass('swal2-fade');
+    // $("#" + id + ' div.swal2-modal').addClass('swal2-show');
+	// $("#" + id + ' div.swal2-modal').show();
+	
+// }
+
+// $(function () {
+    // $(document).on("keydown", function (e) {
+		// var btn = $('.swal2-in').find('button');
+        // if (btn !== undefined && e.which == 13 || e.which == 27) {
+			// //console.log(btn);
+            // $(btn).trigger('click');
+        // }
+    // });
+	
+	// alert('page load 1');
+	// alert('page load 2');
+	// alert('page load 3');
+// });
+ 
+ 
+ 
+$.fn.extend({
+    HicomReport: function ( params, reportServer, reportPath, reportName) {
+
+        var _reportUrl = reportServer + '?/' + reportPath + reportName + '&';
+        var divreport = document.createElement('div');
+        $(divreport).attr('id', 14568);
+        $(divreport).css({ 'height': 700 });
+
+        _reportUrl = _reportUrl + jQuery.param(params);
+
+        var _iframe = document.createElement('iframe');
+        $(_iframe).attr('src', _reportUrl);
+        $(_iframe).attr('height', '100%');
+        $(_iframe).attr('width', '100%');
+        $(divreport).append(_iframe);
+        $(this).append(divreport);
+     
+   
+    },
+    HicomDialogReport: function ( params, reportServer, reportPath, reportName) {
+        $(this).html('');
+        var _reportUrl = reportServer + '?/' + reportPath + reportName + '&';
+        var divreport = document.createElement('div');
+        $(divreport).attr('id', 14568);
+        $(divreport).css({ 'height': 700 });
+
+        _reportUrl = _reportUrl + jQuery.param(params);
+
+        var _iframe = document.createElement('iframe');
+        $(_iframe).attr('src', _reportUrl);
+        $(_iframe).attr('height', '100%');
+        $(_iframe).attr('width', '100%');
+        $(divreport).append(_iframe);
+        $(this).append(divreport);
+
+        $(this).dialog({
+            buttons: { OK: function () { 
+               
+                $(this).dialog('close'); } 
+	
+            },
+          
+            draggable: true,
+            modal: true,
+            resizable: false,
+            width: 'auto'
+        });
+      
+    }
+
+});
+
+
+
+function DialogReport()
+{
+    $("#reportDconent").HicomDialogReport(options, 'http://hissql02/ReportServer_CIS/', 'MEH/OpenEyes/Dev/', 'PatientPrescription');
+}
+
+function LoadHicomReport(reportName)
+{
+	var options = {};
+options["rs:Paramters"] = true;
+options["rs:Paramters"] = true;
+options["rs:Paramters"] = true;
+options.SiteId = 16;
+options.PathwayEncounterId = 2
+//options.reportUrl = 
+// Use the newly created .check() method
+$("#report").HicomReport(options, 'http://hissql02/ReportServer_CIS/', 'MEH/OpenEyes/Dev/', reportName);
+}
+
+
+
+
+var htmlReportdialog = `
+
+  <div class="modal-dialog">
+    <div class="modal-content" style="width: 750px; top: 10%; background-color: #fff; min-height:400px;">
+      <fieldset>
+        <legend class="col-md-12 col-xs-12  pull-Left text-Left LegendEvent">
+          <span class="oe-diagnosis"></span>
+          <span class="LegendTitle">Open Eyes</span>
+          <button class="close" data-dismiss="modal" type="button" onclick='HicomUIReport.CloseDialog(this);'>
+            <span class="oe-cancel"></span>
+          </button>          
+        </legend>
+        <div class="row">
+          <div id='reportcontainer' class="reportcontainer" style="height: 900px !important; margin-left:5px; padding:0 30px">
+			<iframe id='idIframeReport' height='95%' width='95%' src='' />
+          </div>
+        </div>
+      </fieldset>
+    </div>
+  </div>`;
+
+
+
+function GetReportInfo(apiUrl, reportName) {
+
+  _url = apiUrl + reportName;
+ return	$.getJSON(_url, function(res) {
+		 return res;		
+	});
+	
+}
+
+var HicomUIReport = (function () {
+    return {
+		Load : function(apiUrl, reportName, params)
+		{
+			var options = {};
+			options["rc:Parameters"] = false;
+			options.SiteId = 16;
+			options.PathwayEncounterId = 2
+			
+			var reportServer =	'http://hissql02/ReportServer_CIS/';
+			var reportPath =	'MEH/OpenEyes/Dev/';
+			var _reportUrl = reportServer + '?/' + reportPath + reportName + '&';
+			
+			GetReportInfo(apiUrl, reportName).then((res)=> 
+			{
+				
+			  console.log('API Data', res);
+			
+			});
+			
+				
+				
+			var divreport = document.createElement('div');
+			$(divreport).attr('id', 'SystemReportModal');
+			$(divreport).attr('class', 'modal fade SystemReportModal in');
+			$(divreport).attr('role', 'dialog');
+
+			$(divreport).html(htmlReportdialog);
+			$('body').append(divreport);
+
+			_reportUrl = _reportUrl + jQuery.param(options);
+			var _iframe = document.getElementById('idIframeReport');
+			
+			$(_iframe).attr('src', _reportUrl);
+
+			
+			$(divreport).show();
+		},
+		Dialog : function(apiUrl, reportName, params)
+		{
+			var options = {};
+			options["rc:Parameters"] = false;
+			//options.SiteId = 16;
+			//options.PathwayEncounterId = 2
+			
+			//var reportServer =	'http://hissql02/ReportServer_CIS/?/MEH/OpenEyes/Dev/';//http://hissql02/ReportServer_CIS/';
+			//var reportPath =	'MEH/OpenEyes/Dev/';
+			//var _reportUrl = reportServer + '?/' + reportPath + reportName + '&';
+			var _reportUrl = reportServer + reportName + '&';
+			console.log(apiUrl);
+			GetReportInfo(apiUrl, reportName).then((res)=> 
+			{
+				
+				console.log('API Data', res.Data);
+				if(res)
+				{
+				//var
+					_reportUrl = res.Data[0].ReportServer + '&';
+				
+					console.log(_reportUrl);
+					
+					var divreport = document.createElement('div');
+					$(divreport).attr('id', 'SystemReportModal');
+					$(divreport).attr('class', 'modal fade SystemReportModal in');
+					$(divreport).attr('role', 'dialog');
+
+					$(divreport).html(htmlReportdialog);
+					$('body').append(divreport);
+
+					_reportUrl = _reportUrl + jQuery.param(options);
+					var _iframe = document.getElementById('idIframeReport');
+					
+					$(_iframe).attr('src', _reportUrl);
+
+					
+					$(divreport).show();
+				}
+			});
+		},
+		CloseDialog : function(btn)
+		{
+			 var _parent = $(btn).parents('div.SystemReportModal');
+			$(_parent).remove();
+		}
+	}
+
+})(HicomUIReport || {})
+
+ 
+
